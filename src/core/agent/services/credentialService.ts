@@ -3,36 +3,36 @@ import { AgentServicesProps } from "../agent.types";
 import { AgentService } from "./agentService";
 import { CredentialMetadataRecordProps } from "../records/credentialMetadataRecord.types";
 import {
-  CredentialShortDetails,
-  ACDCDetails,
-  CredentialStatus,
+CredentialShortDetails,
+ACDCDetails,
+CredentialStatus,
 } from "./credentialService.types";
 import { CredentialMetadataRecord } from "../records/credentialMetadataRecord";
 import { getCredentialShortDetails, OnlineOnly } from "./utils";
 import {
-  CredentialStorage,
-  IdentifierStorage,
-  NotificationStorage,
+CredentialStorage,
+IdentifierStorage,
+NotificationStorage,
 } from "../records";
 import {
-  AcdcStateChangedEvent,
-  CredentialRemovedEvent,
-  EventTypes,
+AcdcStateChangedEvent,
+CredentialRemovedEvent,
+EventTypes,
 } from "../event.types";
 import { IdentifierType } from "./identifier.types";
 
 class CredentialService extends AgentService {
-  static readonly CREDENTIAL_MISSING_METADATA_ERROR_MSG =
-    "Credential metadata missing for stored credential";
-  static readonly CREDENTIAL_NOT_ARCHIVED = "Credential was not archived";
-  static readonly CREDENTIAL_NOT_FOUND =
-    "Credential with given SAID not found on KERIA";
+static readonly CREDENTIAL_MISSING_METADATA_ERROR_MSG =
+"Credential metadata missing for stored credential";
+static readonly CREDENTIAL_NOT_ARCHIVED = "Credential was not archived";
+static readonly CREDENTIAL_NOT_FOUND =
+"Credential with given SAID not found on KERIA";
 
-  protected readonly credentialStorage: CredentialStorage;
-  protected readonly notificationStorage!: NotificationStorage;
-  protected readonly identifierStorage!: IdentifierStorage;
+protected readonly credentialStorage: CredentialStorage;
+protected readonly notificationStorage!: NotificationStorage;
+protected readonly identifierStorage!: IdentifierStorage;
 
-  constructor(
+constructor(
     agentServiceProps: AgentServicesProps,
     credentialStorage: CredentialStorage,
     notificationStorage: NotificationStorage,
@@ -219,34 +219,34 @@ class CredentialService extends AgentService {
     );
 
     for (const credential of unSyncedData) {
-      const hab = await this.props.signifyClient
-        .identifiers()
-        .get(credential.sad.a.i);
-      const telStatus = (
-        await this.props.signifyClient
-          .credentials()
-          .state(credential.sad.ri, credential.sad.d)
-      ).et;
-
+        const identifier = await this.identifierStorage.getIdentifierMetadata(
+                credential.sad.a.i
+              );
+//       const hab = await this.props.signifyClient
+//         .identifiers()
+//         .get(credential.sad.d);
+//       const telStatus = (
+//         await this.props.signifyClient
+//           .credentials()
+//           .state(credential.sad.ri, credential.sad.d)
+//       ).et;
+      if(identifier!=null){
       const metadata = {
         id: credential.sad.d,
         isArchived: false,
         issuanceDate: new Date(credential.sad.a.dt).toISOString(),
         credentialType: credential.schema.title,
-        status:
-          telStatus === Ilks.iss
-            ? CredentialStatus.CONFIRMED
-            : CredentialStatus.REVOKED,
+        status:CredentialStatus.CONFIRMED,
         connectionId: credential.sad.i,
         schema: credential.schema.$id,
         identifierId: credential.sad.a.i,
-        identifierType: hab.group
+        identifierType: identifier.groupMemberPre
           ? IdentifierType.Group
           : IdentifierType.Individual,
         createdAt: new Date(credential.sad.a.dt),
       };
 
-      await this.createMetadata(metadata);
+      await this.createMetadata(metadata);}
     }
   }
 

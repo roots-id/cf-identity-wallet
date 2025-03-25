@@ -1,27 +1,27 @@
 import { HabState, Operation, Signer } from "signify-ts";
 import {
-  CreateIdentifierResult,
-  IdentifierDetails,
-  IdentifierShortDetails,
+CreateIdentifierResult,
+IdentifierDetails,
+IdentifierShortDetails,
 } from "./identifier.types";
 import {
-  CreationStatus,
-  AgentServicesProps,
-  IdentifierResult,
-  MiscRecordId,
-  NotificationRoute,
+CreationStatus,
+AgentServicesProps,
+IdentifierResult,
+MiscRecordId,
+NotificationRoute,
 } from "../agent.types";
 import {
-  IdentifierMetadataRecord,
-  IdentifierMetadataRecordProps,
+IdentifierMetadataRecord,
+IdentifierMetadataRecordProps,
 } from "../records/identifierMetadataRecord";
 import { AgentService } from "./agentService";
 import { OnlineOnly, randomSalt, deleteNotificationRecordById } from "./utils";
 import {
-  BasicRecord,
-  BasicStorage,
-  IdentifierStorage,
-  NotificationStorage,
+BasicRecord,
+BasicStorage,
+IdentifierStorage,
+NotificationStorage,
 } from "../records";
 import { OperationPendingStorage } from "../records/operationPendingStorage";
 import { OperationPendingRecordType } from "../records/operationPendingRecord.type";
@@ -29,44 +29,44 @@ import { Agent } from "../agent";
 import { PeerConnection } from "../../cardano/walletConnect/peerConnection";
 import { ConnectionService } from "./connectionService";
 import {
-  EventTypes,
-  IdentifierAddedEvent,
-  IdentifierRemovedEvent,
-  NotificationRemovedEvent,
+EventTypes,
+IdentifierAddedEvent,
+IdentifierRemovedEvent,
+NotificationRemovedEvent,
 } from "../event.types";
 import { StorageMessage } from "../../storage/storage.types";
 
 const UI_THEMES = [
-  0, 1, 2, 3, 10, 11, 12, 13, 20, 21, 22, 23, 30, 31, 32, 33, 40, 41, 42, 43,
+0, 1, 2, 3, 10, 11, 12, 13, 20, 21, 22, 23, 30, 31, 32, 33, 40, 41, 42, 43,
 ];
 
 class IdentifierService extends AgentService {
-  static readonly IDENTIFIER_METADATA_RECORD_MISSING =
-    "Identifier metadata record does not exist";
-  static readonly INVALID_THEME = "Identifier theme was not valid";
-  static readonly EXN_MESSAGE_NOT_FOUND =
-    "There's no exchange message for the given SAID";
-  static readonly FAILED_TO_OBTAIN_KEY_MANAGER =
-    "Failed to obtain key manager for given AID";
-  static readonly IDENTIFIER_NOT_COMPLETE =
-    "Cannot fetch identifier details as the identifier is still pending or failed to complete";
-  static readonly INSUFFICIENT_WITNESSES_AVAILABLE =
-    "An insufficient number of discoverable witnesses are available on connected KERIA instance";
-  static readonly MISCONFIGURED_AGENT_CONFIGURATION =
-    "Misconfigured KERIA agent for this wallet type";
-  static readonly INVALID_QUEUED_DISPLAY_NAMES_FORMAT =
-    "Queued display names has invalid format";
-  static readonly CANNOT_FIND_EXISTING_IDENTIFIER_BY_SEARCH =
-    "Identifier name taken on KERIA, but cannot be found when iterating over identifier list";
-  static readonly DELETED_IDENTIFIER_THEME = "XX";
+static readonly IDENTIFIER_METADATA_RECORD_MISSING =
+"Identifier metadata record does not exist";
+static readonly INVALID_THEME = "Identifier theme was not valid";
+static readonly EXN_MESSAGE_NOT_FOUND =
+"There's no exchange message for the given SAID";
+static readonly FAILED_TO_OBTAIN_KEY_MANAGER =
+"Failed to obtain key manager for given AID";
+static readonly IDENTIFIER_NOT_COMPLETE =
+"Cannot fetch identifier details as the identifier is still pending or failed to complete";
+static readonly INSUFFICIENT_WITNESSES_AVAILABLE =
+"An insufficient number of discoverable witnesses are available on connected KERIA instance";
+static readonly MISCONFIGURED_AGENT_CONFIGURATION =
+"Misconfigured KERIA agent for this wallet type";
+static readonly INVALID_QUEUED_DISPLAY_NAMES_FORMAT =
+"Queued display names has invalid format";
+static readonly CANNOT_FIND_EXISTING_IDENTIFIER_BY_SEARCH =
+"Identifier name taken on KERIA, but cannot be found when iterating over identifier list";
+static readonly DELETED_IDENTIFIER_THEME = "XX";
 
-  protected readonly identifierStorage: IdentifierStorage;
-  protected readonly operationPendingStorage: OperationPendingStorage;
-  protected readonly basicStorage: BasicStorage;
-  protected readonly notificationStorage: NotificationStorage;
-  protected readonly connections: ConnectionService;
+protected readonly identifierStorage: IdentifierStorage;
+protected readonly operationPendingStorage: OperationPendingStorage;
+protected readonly basicStorage: BasicStorage;
+protected readonly notificationStorage: NotificationStorage;
+protected readonly connections: ConnectionService;
 
-  constructor(
+constructor(
     agentServiceProps: AgentServicesProps,
     identifierStorage: IdentifierStorage,
     operationPendingStorage: OperationPendingStorage,
@@ -318,14 +318,14 @@ class IdentifierService extends AgentService {
           error instanceof Error &&
           error.message.startsWith(
             StorageMessage.RECORD_ALREADY_EXISTS_ERROR_MSG
-          )
-        )
-      ) {
-        throw error;
-      }
-    }
+)
+)
+) {
+throw error;
+}
+}
 
-    await this.operationPendingStorage.save({
+await this.operationPendingStorage.save({
       id: `witness.${identifier}`,
       recordType: OperationPendingRecordType.Witness,
     });
@@ -551,21 +551,17 @@ class IdentifierService extends AgentService {
     }
 
     for (const identifier of unSyncedDataWithoutGroup) {
-      const op: Operation = await this.props.signifyClient
-        .operations()
-        .get(`witness.${identifier.prefix}`);
+//       const op: Operation = await this.props.signifyClient
+//         .operations()
+//         .get(`witness.${identifier.prefix}`);
 
-      const creationStatus = op.done
-        ? op.error
-          ? CreationStatus.FAILED
-          : CreationStatus.COMPLETE
-        : CreationStatus.PENDING;
-      if (creationStatus === CreationStatus.PENDING) {
-        await this.operationPendingStorage.save({
-          id: op.name,
-          recordType: OperationPendingRecordType.Witness,
-        });
-      }
+      const creationStatus = CreationStatus.COMPLETE
+//       if (creationStatus === CreationStatus.PENDING) {
+//         await this.operationPendingStorage.save({
+//           id: op.name,
+//           recordType: OperationPendingRecordType.Witness,
+//         });
+//       }
 
       const nameParts = identifier.name.split(":");
       const theme =
@@ -584,15 +580,15 @@ class IdentifierService extends AgentService {
 
         await this.identifierStorage.createIdentifierMetadataRecord({
           id: identifier.prefix,
-          displayName: nameParts[2],
+          displayName: identifier.name.includes(":") ? identifier.name.split(":")[1] : identifier.name,
           theme,
           groupMetadata: {
             groupId: groupIdParts[1],
             groupCreated: false,
             groupInitiator,
           },
-          creationStatus,
-          createdAt: new Date(identifierDetail.icp_dt),
+          creationStatus:CreationStatus.COMPLETE,
+          createdAt: new Date(identifierDetail.state.dt),
           sxlt: identifierDetail.salty?.sxlt,
           isDeleted: identifier.name.startsWith(
             IdentifierService.DELETED_IDENTIFIER_THEME
@@ -603,10 +599,10 @@ class IdentifierService extends AgentService {
 
       await this.identifierStorage.createIdentifierMetadataRecord({
         id: identifier.prefix,
-        displayName: nameParts[1],
+        displayName: identifier.name.includes(":") ? identifier.name.split(":")[1] : identifier.name,
         theme,
-        creationStatus,
-        createdAt: new Date(identifierDetail.icp_dt),
+        creationStatus:CreationStatus.COMPLETE,
+        createdAt: new Date(identifierDetail.state.dt),
         sxlt: identifierDetail.salty?.sxlt,
         isDeleted: identifier.name.startsWith(
           IdentifierService.DELETED_IDENTIFIER_THEME
@@ -677,21 +673,22 @@ class IdentifierService extends AgentService {
   }
 
   async getAvailableWitnesses(): Promise<{
-    toad: number;
-    witnesses: string[];
-  }> {
-    const config = await this.props.signifyClient.config().get();
-    if (!config.iurls) {
-      throw new Error(IdentifierService.MISCONFIGURED_AGENT_CONFIGURATION);
-    }
+      toad: number;
+      witnesses: string[];
+    }> {
+      const hardcodedIurls = [
+      "http://witness-demo:5642/oobi/BBilc4-L3tFUnfM_wJr4S4OJanAv_VmF_dJNN6vkf2Ha/controller",
+      "http://witness-demo:5643/oobi/BLskRTInXnMxWaGqcpSyMgo0nYbalW99cGZESrz3zapM/controller",
+      "http://witness-demo:5644/oobi/BIKKuvBwpmDVA4Ds-EpL5bt9OqPzWPja2LigFYZN2YfX/controller",
+      "http://witness-demo:5645/oobi/BM35JN8XeJSEfpxopjn5jr7tAHCE5749f0OobhMLCorE/controller",
+      "http://witness-demo:5646/oobi/BIj15u5V11bkbtAxMA7gcNJZcax-7TgaBMLsQnMHpYHP/controller",
+      "http://witness-demo:5647/oobi/BF2rZTW79z4IXocYRQnjjsOuvFUQv-ptCf8Yltd7PfsM/controller"
+    ];
 
-    const witnesses = [];
-    for (const oobi of config.iurls) {
-      const role = new URL(oobi).searchParams.get("role");
-      if (role === "witness") {
-        witnesses.push(oobi.split("/oobi/")[1].split("/")[0]); // EID - endpoint identifier
-      }
-    }
+      const witnesses = hardcodedIurls.map(
+      (url) => url.split("/oobi/")[1].split("/")[0]
+    );
+
 
     const uniquew = [...new Set(witnesses)];
     if (uniquew.length >= 12)

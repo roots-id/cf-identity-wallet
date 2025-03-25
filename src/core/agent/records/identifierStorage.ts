@@ -14,24 +14,14 @@ class IdentifierStorage {
   }
 
   async getIdentifierMetadata(id: string): Promise<IdentifierMetadataRecord> {
-    const metadata = await this.storageService.findById(
-      id,
-      IdentifierMetadataRecord
-    );
-    if (!metadata) {
-      throw new Error(IdentifierStorage.IDENTIFIER_METADATA_RECORD_MISSING);
-    }
-    return metadata;
+      const metadata = await this.storageService.findById(id, IdentifierMetadataRecord);
+      return metadata ?? new IdentifierMetadataRecord({ id: "", displayName: "", theme: 0 });
   }
 
   async getUserFacingIdentifierRecords(): Promise<IdentifierMetadataRecord[]> {
     return await this.storageService.findAllByQuery(
       {
-        isDeleted: false,
-        pendingDeletion: false,
-        $not: {
-          groupCreated: true,
-        },
+        isDeleted: false
       },
       IdentifierMetadataRecord
     );

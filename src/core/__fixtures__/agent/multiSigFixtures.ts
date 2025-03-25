@@ -1,4 +1,4 @@
-import { CreateIdentifierBody, Tier } from "signify-ts";
+import {  Tier } from "signify-ts";
 import { ConnectionStatus, CreationStatus } from "../../agent/agent.types";
 import {
   IdentifierMetadataRecord,
@@ -65,54 +65,54 @@ const getMemberIdentifierResponse = {
 };
 
 const getMultisigIdentifierResponse = {
-  name: "00:group",
-  prefix: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
-  state: {
-    vn: [1, 0],
-    i: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
-    s: "0",
-    p: "",
-    d: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
-    f: "0",
-    dt: "2024-07-24T02:22:14.257271+00:00",
-    et: "icp",
-    kt: "1",
-    k: [
-      "DIH7-xjcUC-xPS9I32b0ftZAT6gHJvfHiBR4UwxtWuEO",
-      "DEbgy9MjAL-_cbSSKnf4-ex7QSrd-RoMZ12NzYFp6nX6",
-    ],
-    nt: "1",
-    n: [
-      "EGd8MBVVtKu-wjwsgw2fyKyhNZDnwH7zuI7ezUlm6ZwD",
-      "EMrI55rI2XYkU5XakW_Okt012RjaC6zLZblvjcUm851t",
-    ],
-    bt: "0",
-    b: [],
-    c: [],
-    ee: {
-      s: "0",
-      d: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
-      br: [],
-      ba: [],
-    },
-    di: "",
-  },
-  icp_dt: "2024-08-10T07:23:54.839894+00:00",
+name: "00:group",
+prefix: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
+state: {
+vn: [1, 0],
+i: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
+s: "0",
+p: "",
+d: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
+f: "0",
+dt: "2024-07-24T02:22:14.257271+00:00",
+et: "icp",
+kt: "1",
+k: [
+"DIH7-xjcUC-xPS9I32b0ftZAT6gHJvfHiBR4UwxtWuEO",
+"DEbgy9MjAL-_cbSSKnf4-ex7QSrd-RoMZ12NzYFp6nX6",
+],
+nt: "1",
+n: [
+"EGd8MBVVtKu-wjwsgw2fyKyhNZDnwH7zuI7ezUlm6ZwD",
+"EMrI55rI2XYkU5XakW_Okt012RjaC6zLZblvjcUm851t",
+],
+bt: "0",
+b: [],
+c: [],
+ee: {
+s: "0",
+d: "ELWFo-DV4GujnvcwwIbzTzjc-nIf0ijv6W1ecajvQYBY",
+br: [],
+ba: [],
+},
+di: "",
+},
+icp_dt: "2024-08-10T07:23:54.839894+00:00",
 };
 
 const memberIdentifierRecord = {
-  _tags: {
-    groupId: "08f22dee-8cb0-4d65-8600-a82bbc3f6fd7",
-    isDeleted: false,
-    creationStatus: CreationStatus.COMPLETE,
-    groupCreated: true,
-  },
-  type: "IdentifierMetadataRecord",
-  id: "EE-gjeEni5eCdpFlBtG7s4wkv7LJ0JmWplCS4DNQwW2G",
-  displayName: "multi-sig",
-  isDeleted: false,
-  creationStatus: CreationStatus.COMPLETE,
-  createdAt: new Date("2024-06-28T03:54:03.514Z"),
+_tags: {
+groupId: "08f22dee-8cb0-4d65-8600-a82bbc3f6fd7",
+isDeleted: false,
+creationStatus: CreationStatus.COMPLETE,
+groupCreated: true,
+},
+type: "IdentifierMetadataRecord",
+id: "EE-gjeEni5eCdpFlBtG7s4wkv7LJ0JmWplCS4DNQwW2G",
+displayName: "multi-sig",
+isDeleted: false,
+creationStatus: CreationStatus.COMPLETE,
+createdAt: new Date("2024-06-28T03:54:03.514Z"),
   theme: 0,
   groupMetadata: {
     groupId: "08f22dee-8cb0-4d65-8600-a82bbc3f6fd7",
@@ -738,7 +738,7 @@ const memberKeyStateRot = {
   },
 };
 
-const inceptionDataFix: CreateIdentifierBody = {
+const inceptionDataFix: any = {
   name: "id1",
   icp: {
     v: "KERI10JSON0001e7_",

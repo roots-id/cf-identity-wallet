@@ -231,7 +231,7 @@ const CreateSSIAgent = () => {
         bootUrl: ssiAgent.bootUrl,
         url: ssiAgent.connectUrl,
       });
-
+      await Agent.agent.loadDatabase(dispatch);
       const { nextPath, updateRedux } = getNextRoute(RoutePath.SSI_AGENT, {
         store: { stateCache },
       });

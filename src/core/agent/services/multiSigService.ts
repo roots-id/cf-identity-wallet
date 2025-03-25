@@ -1,36 +1,35 @@
 import {
-  Algos,
-  CreateIdentifierBody,
-  d,
-  HabState,
-  messagize,
-  Serder,
-  Siger,
-  State,
+    Algos,
+d,
+HabState,
+messagize,
+Serder,
+Siger,
+State,
 } from "signify-ts";
 import {
-  NotificationRoute,
-  AgentServicesProps,
-  MiscRecordId,
-  CreationStatus,
+NotificationRoute,
+AgentServicesProps,
+MiscRecordId,
+CreationStatus,
 } from "../agent.types";
 import type {
-  ConnectionShortDetails,
-  AuthorizationRequestExn,
+ConnectionShortDetails,
+AuthorizationRequestExn,
 } from "../agent.types";
 import {
-  BasicRecord,
-  BasicStorage,
-  IdentifierStorage,
-  NotificationStorage,
-  OperationPendingStorage,
+BasicRecord,
+BasicStorage,
+IdentifierStorage,
+NotificationStorage,
+OperationPendingStorage,
 } from "../records";
 import { AgentService } from "./agentService";
 import {
-  GroupParticipants,
-  MultiSigIcpRequestDetails,
-  QueuedGroupCreation,
-  QueuedGroupProps,
+GroupParticipants,
+MultiSigIcpRequestDetails,
+QueuedGroupCreation,
+QueuedGroupProps,
 } from "./identifier.types";
 import { MultiSigRoute, InceptMultiSigExnMessage } from "./multiSig.types";
 import { deleteNotificationRecordById, OnlineOnly } from "./utils";
@@ -41,17 +40,17 @@ import { IdentifierService } from "./identifierService";
 import { StorageMessage } from "../../storage/storage.types";
 
 class MultiSigService extends AgentService {
-  static readonly INVALID_THRESHOLD = "Invalid threshold";
-  static readonly CANNOT_GET_KEYSTATE_OF_IDENTIFIER =
-    "Unable to query key state of identifier";
-  static readonly EXN_MESSAGE_NOT_FOUND =
-    "There's no exchange message for the given SAID";
-  static readonly MULTI_SIG_NOT_FOUND =
-    "There's no multi sig identifier for the given SAID";
-  static readonly AID_IS_NOT_MULTI_SIG =
-    "This AID is not a multi sig identifier";
-  static readonly UNKNOWN_AIDS_IN_MULTISIG_ICP =
-    "Multi-sig join request contains unknown AIDs (not connected)";
+static readonly INVALID_THRESHOLD = "Invalid threshold";
+static readonly CANNOT_GET_KEYSTATE_OF_IDENTIFIER =
+"Unable to query key state of identifier";
+static readonly EXN_MESSAGE_NOT_FOUND =
+"There's no exchange message for the given SAID";
+static readonly MULTI_SIG_NOT_FOUND =
+"There's no multi sig identifier for the given SAID";
+static readonly AID_IS_NOT_MULTI_SIG =
+"This AID is not a multi sig identifier";
+static readonly UNKNOWN_AIDS_IN_MULTISIG_ICP =
+"Multi-sig join request contains unknown AIDs (not connected)";
   static readonly MISSING_GROUP_METADATA =
     "Metadata record for group is missing";
   static readonly ONLY_ALLOW_LINKED_CONTACTS =
@@ -131,12 +130,12 @@ class MultiSigService extends AgentService {
             await this.props.signifyClient.keyStates().get(connection.id)
           )[0]
       )
-    );
-    const states = [mHab["state"], ...connectionStates];
-    const groupName = `${mHabRecord.theme}:${mHabRecord.displayName}`;
+);
+const states = [mHab["state"], ...connectionStates];
+const groupName = `${mHabRecord.theme}:${mHabRecord.displayName}`;
 
-    const inceptionData = backgroundTask
-      ? await this.getInceptionData(groupName)
+const inceptionData = backgroundTask
+? await this.getInceptionData(groupName)
       : await this.generateAndStoreInceptionData(
         mHab,
         states,
@@ -172,15 +171,15 @@ class MultiSigService extends AgentService {
           error instanceof Error &&
           error.message.startsWith(
             StorageMessage.RECORD_ALREADY_EXISTS_ERROR_MSG
-          )
-        )
-      ) {
-        throw error;
-      }
-    }
+)
+)
+) {
+throw error;
+}
+}
 
-    mHabRecord.groupMetadata.groupCreated = true;
-    await this.identifierStorage.updateIdentifierMetadata(
+mHabRecord.groupMetadata.groupCreated = true;
+await this.identifierStorage.updateIdentifierMetadata(
       mHabRecord.id,
       mHabRecord
     );
@@ -218,7 +217,7 @@ class MultiSigService extends AgentService {
 
   private async getInceptionData(
     groupName: string
-  ): Promise<CreateIdentifierBody> {
+  ): Promise<any> {
     const pendingGroupsRecord = await this.basicStorage.findExpectedById(
       MiscRecordId.MULTISIG_IDENTIFIERS_PENDING_CREATION
     );
@@ -238,7 +237,7 @@ class MultiSigService extends AgentService {
     groupName: string,
     threshold: number,
     queuedProps: QueuedGroupProps
-  ): Promise<CreateIdentifierBody> {
+  ): Promise<any> {
     // For distributed reliability, store name and inception data so we can re-try on start-up
     // Hence we ignore duplicate errors
     let queued: QueuedGroupCreation[] = [];
@@ -250,21 +249,21 @@ class MultiSigService extends AgentService {
         .queued as QueuedGroupCreation[];
       queued = currentQueue;
     }
+    const inceptionData = "any";
+//     const inceptionData = await this.props.signifyClient
+//       .identifiers()
+//       .createInceptionData(groupName, {
+//         algo: Algos.group,
+//         mhab: mHab,
+//         isith: threshold,
+//         nsith: threshold,
+//         toad: Number(mHab.state.bt),
+//         wits: mHab.state.b,
+//         states: states,
+//         rstates: states,
+//       });
 
-    const inceptionData = await this.props.signifyClient
-      .identifiers()
-      .createInceptionData(groupName, {
-        algo: Algos.group,
-        mhab: mHab,
-        isith: threshold,
-        nsith: threshold,
-        toad: mHab.state.b.length,
-        wits: mHab.state.b,
-        states: states,
-        rstates: states,
-      });
-
-    queued.push({ name: groupName, data: inceptionData, ...queuedProps });
+//     queued.push({ name: groupName, data: inceptionData, ...queuedProps });
 
     await this.basicStorage.createOrUpdateBasicRecord(
       new BasicRecord({
@@ -279,12 +278,12 @@ class MultiSigService extends AgentService {
   private async inceptGroup(
     mHab: HabState,
     states: State[],
-    inceptionData: CreateIdentifierBody
+    inceptionData: any
   ): Promise<void> {
     try {
-      await this.props.signifyClient
-        .identifiers()
-        .submitInceptionData(inceptionData);
+//       await this.props.signifyClient
+//         .identifiers()
+//         .submitInceptionData(inceptionData);
     } catch (error) {
       if (!(error instanceof Error)) throw error;
 
@@ -365,8 +364,8 @@ class MultiSigService extends AgentService {
     const otherConnections = (
       await this.connections.getMultisigLinkedContacts(
         ourIdentifier.groupMetadata.groupId
-      )
-    ).filter((connection) => connection.id !== senderAid);
+)
+).filter((connection) => connection.id !== senderAid);
 
     if (otherConnections.length !== smids.length - 2) {
       // Should be 2 less for us and the sender
@@ -427,11 +426,11 @@ class MultiSigService extends AgentService {
           (
             await this.props.signifyClient.keyStates().get(memberId)
           )[0]
-      )
-    );
+)
+);
 
-    const inceptionData = backgroundTask
-      ? await this.getInceptionData(groupName)
+const inceptionData = backgroundTask
+? await this.getInceptionData(groupName)
       : await this.generateAndStoreInceptionData(
         mHab,
         states,
@@ -466,15 +465,15 @@ class MultiSigService extends AgentService {
           error instanceof Error &&
           error.message.startsWith(
             StorageMessage.RECORD_ALREADY_EXISTS_ERROR_MSG
-          )
-        )
-      ) {
-        throw error;
-      }
-    }
+)
+)
+) {
+throw error;
+}
+}
 
-    mHabRecord.groupMetadata.groupCreated = true;
-    await this.identifierStorage.updateIdentifierMetadata(
+mHabRecord.groupMetadata.groupCreated = true;
+await this.identifierStorage.updateIdentifierMetadata(
       mHabRecord.id,
       mHabRecord
     );
@@ -510,21 +509,21 @@ class MultiSigService extends AgentService {
           error instanceof Error &&
           error.message.startsWith(
             StorageMessage.RECORD_DOES_NOT_EXIST_ERROR_MSG
-          )
-        )
-      ) {
-        throw error;
-      }
-    }
+)
+)
+) {
+throw error;
+}
+}
 
-    // Finally, remove from the re-try record
-    const pendingGroupsRecord = await this.basicStorage.findExpectedById(
-      MiscRecordId.MULTISIG_IDENTIFIERS_PENDING_CREATION
-    );
+// Finally, remove from the re-try record
+const pendingGroupsRecord = await this.basicStorage.findExpectedById(
+MiscRecordId.MULTISIG_IDENTIFIERS_PENDING_CREATION
+);
 
-    const queued = pendingGroupsRecord.content.queued as QueuedGroupCreation[];
-    const index = queued.findIndex((group) => group.name === groupName);
-    if (index !== -1) {
+const queued = pendingGroupsRecord.content.queued as QueuedGroupCreation[];
+const index = queued.findIndex((group) => group.name === groupName);
+if (index !== -1) {
       queued.splice(index, 1);
     }
     await this.basicStorage.update(pendingGroupsRecord);

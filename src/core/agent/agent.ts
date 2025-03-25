@@ -1,40 +1,66 @@
 import { Capacitor } from "@capacitor/core";
 import {
-  randomPasscode,
-  SignifyClient,
-  ready as signifyReady,
-  Tier,
+randomPasscode,
+SignifyClient,
+ready as signifyReady,
+Tier,
 } from "signify-ts";
 import { entropyToMnemonic, mnemonicToEntropy } from "bip39";
 import {
-  AuthService,
-  ConnectionService,
-  CredentialService,
-  IdentifierService,
-  KeriaNotificationService,
-  MultiSigService,
-  IpexCommunicationService,
+AuthService,
+ConnectionService,
+CredentialService,
+IdentifierService,
+KeriaNotificationService,
+MultiSigService,
+IpexCommunicationService,
 } from "./services";
 import {
-  AgentServicesProps,
-  BranAndMnemonic,
-  AgentUrls,
-  MiscRecordId,
+AgentServicesProps,
+BranAndMnemonic,
+AgentUrls,
+MiscRecordId,
 } from "./agent.types";
+import {
+setFavouritesIdentifiersCache,
+setIdentifiersCache,
+setIdentifiersFilters,
+} from "../../store/reducers/identifiersCache";
+import {
+getConnectedWallet,
+setConnectedWallet,
+setPendingConnection,
+setWalletConnectionsCache,
+} from "../../store/reducers/walletConnectionsCache";
+import {
+setCredentialsFilters,
+setCredsCache,
+setFavouritesCredsCache,
+updateOrAddCredsCache,
+} from "../../store/reducers/credsCache";
+import { setCredsArchivedCache } from "../../store/reducers/credsArchivedCache";
+import { setNotificationsCache } from "../../store/reducers/notificationsCache";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { showError } from "../../ui/utils/error";
+import {
+setConnectionsCache,
+setMultisigConnectionsCache,
+updateOrAddConnectionCache,
+} from "../../store/reducers/connectionsCache";
 import { CoreEventEmitter } from "./event";
 import {
-  BasicRecord,
-  BasicStorage,
-  ConnectionRecord,
-  ConnectionStorage,
-  CredentialMetadataRecord,
-  CredentialStorage,
-  IdentifierMetadataRecord,
-  IdentifierStorage,
-  PeerConnectionMetadataRecord,
-  PeerConnectionStorage,
-  NotificationRecord,
-  NotificationStorage,
+BasicRecord,
+BasicStorage,
+ConnectionRecord,
+ConnectionStorage,
+CredentialMetadataRecord,
+CredentialStorage,
+IdentifierMetadataRecord,
+IdentifierStorage,
+PeerConnectionMetadataRecord,
+PeerConnectionStorage,
+NotificationRecord,
+NotificationStorage,
 } from "./records";
 import { KeyStoreKeys, SecureStorage } from "../storage";
 import { SqliteSession } from "../storage/sqliteStorage/sqliteSession";
@@ -49,49 +75,49 @@ import { isNetworkError } from "./services/utils";
 
 const walletId = "idw";
 class Agent {
-  static readonly KERIA_CONNECTION_BROKEN =
-    "The app is not connected to KERIA at the moment";
-  static readonly KERIA_BOOT_FAILED_BAD_NETWORK =
-    "Failed to boot due to network connectivity";
-  static readonly KERIA_CONNECT_FAILED_BAD_NETWORK =
-    "Failed to connect due to network connectivity";
-  static readonly KERIA_BOOT_FAILED = "Failed to boot signify client";
-  static readonly KERIA_BOOTED_ALREADY_BUT_CANNOT_CONNECT =
-    "KERIA agent is already booted but cannot connect";
-  static readonly KERIA_NOT_BOOTED =
-    "Agent has not been booted for a given Signify passcode";
-  static readonly MISSING_BRAN_SECURE_STORAGE = "Bran not in secure storage";
-  static readonly INVALID_MNEMONIC = "Seed phrase is invalid";
-  static readonly MISSING_DATA_ON_KERIA =
-    "Attempted to fetch data by ID on KERIA, but was not found. May indicate stale data records in the local database.";
-  static readonly BUFFER_ALLOC_SIZE = 3;
-  static readonly DEFAULT_RECONNECT_INTERVAL = 1000;
+static readonly KERIA_CONNECTION_BROKEN =
+"The app is not connected to KERIA at the moment";
+static readonly KERIA_BOOT_FAILED_BAD_NETWORK =
+"Failed to boot due to network connectivity";
+static readonly KERIA_CONNECT_FAILED_BAD_NETWORK =
+"Failed to connect due to network connectivity";
+static readonly KERIA_BOOT_FAILED = "Failed to boot signify client";
+static readonly KERIA_BOOTED_ALREADY_BUT_CANNOT_CONNECT =
+"KERIA agent is already booted but cannot connect";
+static readonly KERIA_NOT_BOOTED =
+"Agent has not been booted for a given Signify passcode";
+static readonly MISSING_BRAN_SECURE_STORAGE = "Bran not in secure storage";
+static readonly INVALID_MNEMONIC = "Seed phrase is invalid";
+static readonly MISSING_DATA_ON_KERIA =
+"Attempted to fetch data by ID on KERIA, but was not found. May indicate stale data records in the local database.";
+static readonly BUFFER_ALLOC_SIZE = 3;
+static readonly DEFAULT_RECONNECT_INTERVAL = 1000;
 
-  private static instance: Agent;
-  private agentServicesProps!: AgentServicesProps;
-  private signifyClient!: SignifyClient;
+private static instance: Agent;
+private agentServicesProps!: AgentServicesProps;
+private signifyClient!: SignifyClient;
 
-  private storageSession!: SqliteSession | IonicSession;
+private storageSession!: SqliteSession | IonicSession;
 
-  private basicStorageService!: BasicStorage;
-  private identifierStorage!: IdentifierStorage;
-  private credentialStorage!: CredentialStorage;
-  private connectionStorage!: ConnectionStorage;
-  private notificationStorage!: NotificationStorage;
-  private peerConnectionStorage!: PeerConnectionStorage;
-  private operationPendingStorage!: OperationPendingStorage;
+private basicStorageService!: BasicStorage;
+private identifierStorage!: IdentifierStorage;
+private credentialStorage!: CredentialStorage;
+private connectionStorage!: ConnectionStorage;
+private notificationStorage!: NotificationStorage;
+private peerConnectionStorage!: PeerConnectionStorage;
+private operationPendingStorage!: OperationPendingStorage;
 
-  private identifierService!: IdentifierService;
-  private multiSigService!: MultiSigService;
-  private ipexCommunicationService!: IpexCommunicationService;
-  private connectionService!: ConnectionService;
-  private credentialService!: CredentialService;
-  private keriaNotificationService!: KeriaNotificationService;
-  private authService!: AuthService;
+private identifierService!: IdentifierService;
+private multiSigService!: MultiSigService;
+private ipexCommunicationService!: IpexCommunicationService;
+private connectionService!: ConnectionService;
+private credentialService!: CredentialService;
+private keriaNotificationService!: KeriaNotificationService;
+private authService!: AuthService;
 
-  static isOnline = false;
+static isOnline = false;
 
-  get identifiers() {
+get identifiers() {
     if (!this.identifierService) {
       this.identifierService = new IdentifierService(
         this.agentServicesProps,
@@ -226,7 +252,7 @@ class Agent {
     if (!Agent.isOnline) {
       await signifyReady();
       const bran = await this.getBran();
-      this.signifyClient = new SignifyClient(keriaConnectUrl, bran, Tier.low);
+      this.signifyClient = new SignifyClient(keriaConnectUrl, "BTaqgh1eeOjXO5iQJp6m5", Tier.low);
       this.agentServicesProps.signifyClient = this.signifyClient;
       await this.connectSignifyClient();
     }
@@ -236,36 +262,32 @@ class Agent {
     if (!Agent.isOnline) {
       await signifyReady();
       const bran = await this.getBran();
-      this.signifyClient = new SignifyClient(
-        agentUrls.url,
-        bran,
-        Tier.low,
-        agentUrls.bootUrl
-      );
+      this.signifyClient = new SignifyClient(agentUrls.url, "BTaqgh1eeOjXO5iQJp6m5", Tier.low);
       this.agentServicesProps.signifyClient = this.signifyClient;
-      const bootResult = await this.signifyClient.boot().catch((e) => {
-        /* eslint-disable no-console */
-        console.error(e);
-        if (e.message === "Failed to fetch") {
-          throw new Error(Agent.KERIA_BOOT_FAILED_BAD_NETWORK, {
-            cause: e,
-          });
-        }
-        throw new Error(Agent.KERIA_BOOT_FAILED, {
-          cause: e,
-        });
-      });
-
-      if (!bootResult.ok && bootResult.status !== 409) {
-        /* eslint-disable no-console */
-        console.warn(
-          `Unexpected KERIA boot status returned: ${bootResult.status} ${bootResult.statusText}`
-        );
-        throw new Error(Agent.KERIA_BOOT_FAILED);
-      }
+//       const bootResult = await this.signifyClient.boot().catch((e) => {
+//         /* eslint-disable no-console */
+//         console.error(e);
+//         if (e.message === "Failed to fetch") {
+//           throw new Error(Agent.KERIA_BOOT_FAILED_BAD_NETWORK, {
+//             cause: e,
+//           });
+//         }
+//         throw new Error(Agent.KERIA_BOOT_FAILED, {
+//           cause: e,
+//         });
+//       });
+//
+//       if (!bootResult.ok && bootResult.status !== 409) {
+//         /* eslint-disable no-console */
+//         console.warn(
+//           `Unexpected KERIA boot status returned: ${bootResult.status} ${bootResult.statusText}`
+//         );
+//         throw new Error(Agent.KERIA_BOOT_FAILED);
+//       }
 
       await this.connectSignifyClient();
       await this.saveAgentUrls(agentUrls);
+      await this.syncWithKeria();
       this.markAgentStatus(true);
     }
   }
@@ -293,7 +315,7 @@ class Agent {
       throw error;
     }
 
-    this.signifyClient = new SignifyClient(connectUrl, bran, Tier.low);
+    this.signifyClient = new SignifyClient(connectUrl, "BTaqgh1eeOjXO5iQJp6m5", Tier.low);
     this.agentServicesProps.signifyClient = this.signifyClient;
     await this.connectSignifyClient();
 
@@ -477,6 +499,33 @@ class Agent {
   getKeriaOnlineStatus(): boolean {
     return Agent.isOnline;
   }
+  public async loadDatabase(dispatch: ReturnType<typeof useAppDispatch>): Promise<void> {
+      try{
+        const connectionsDetails = await Agent.agent.connections.getConnections();
+        const multisigConnectionsDetails =
+          await Agent.agent.connections.getMultisigConnections();
+
+        const credsCache = await Agent.agent.credentials.getCredentials();
+        const credsArchivedCache = await Agent.agent.credentials.getCredentials(
+          true
+        );
+        const storedIdentifiers = await Agent.agent.identifiers.getIdentifiers();
+        const storedPeerConnections =
+          await Agent.agent.peerConnectionMetadataStorage.getAllPeerConnectionMetadata();
+        const notifications =
+          await Agent.agent.keriaNotifications.getNotifications();
+
+        dispatch(setIdentifiersCache(storedIdentifiers));
+        dispatch(setCredsCache(credsCache));
+        dispatch(setCredsArchivedCache(credsArchivedCache));
+        dispatch(setConnectionsCache(connectionsDetails));
+        dispatch(setMultisigConnectionsCache(multisigConnectionsDetails));
+        dispatch(setWalletConnectionsCache(storedPeerConnections));
+        dispatch(setNotificationsCache(notifications));
+      } catch (e) {
+        showError("Failed to load database data", e);
+      }
+    };
 
   private async getBran(): Promise<string> {
     const bran = await SecureStorage.get(KeyStoreKeys.SIGNIFY_BRAN);
