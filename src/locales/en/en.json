@@ -831,6 +831,10 @@
       "connect": {
         "label": "Connect URL",
         "placeholder": "Paste or scan your connect URL"
+      },
+      "passcode": {
+        "label": "Provide agent passcode",
+        "placeholder": "Enter your passcode"
       }
     },
     "error": {

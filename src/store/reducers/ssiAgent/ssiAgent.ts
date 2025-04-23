@@ -5,6 +5,7 @@ import { SSIAgentState } from "./ssiAgent.types";
 const initialState: SSIAgentState = {
   connectUrl: undefined,
   bootUrl: undefined,
+  passcode: undefined,
 };
 
 const ssiAgentSlice = createSlice({
@@ -17,15 +18,27 @@ const ssiAgentSlice = createSlice({
     setBootUrl: (state, action: PayloadAction<string | undefined>) => {
       state.bootUrl = action.payload;
     },
+    setPasscode: (state, action: PayloadAction<string | undefined>) => {
+      state.passcode = action.payload;
+    },
     clearSSIAgent: (state) => {
       state.connectUrl = undefined;
       state.bootUrl = undefined;
+      state.passcode = undefined;
     },
   },
 });
 
-const { clearSSIAgent, setBootUrl, setConnectUrl } = ssiAgentSlice.actions;
+const { clearSSIAgent, setBootUrl, setConnectUrl, setPasscode } =
+  ssiAgentSlice.actions;
 
 const getSSIAgent = (state: RootState) => state.ssiAgentCache;
 
-export { clearSSIAgent, getSSIAgent, ssiAgentSlice, setBootUrl, setConnectUrl };
+export {
+  clearSSIAgent,
+  getSSIAgent,
+  ssiAgentSlice,
+  setBootUrl,
+  setConnectUrl,
+  setPasscode,
+};

@@ -166,6 +166,7 @@ interface IdentifierResult {
 interface AgentUrls {
   url: string;
   bootUrl: string;
+  passcode: string;
 }
 
 enum NotificationRoute {

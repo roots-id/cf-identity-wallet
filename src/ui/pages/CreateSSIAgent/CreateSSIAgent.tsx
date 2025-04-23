@@ -26,6 +26,7 @@ import {
   getSSIAgent,
   setBootUrl,
   setConnectUrl,
+  setPasscode,
 } from "../../../store/reducers/ssiAgent";
 import {
   getStateCache,
@@ -78,6 +79,7 @@ const CreateSSIAgent = () => {
   const dispatch = useAppDispatch();
   const [connectUrlInputTouched, setConnectUrlTouched] = useState(false);
   const [bootUrlInputTouched, setBootUrlInputTouched] = useState(false);
+  const [passcodeInputTouched, setPasscodeInputTouched] = useState(false);
   const [openInfo, setOpenInfo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasMismatchError, setHasMismatchError] = useState(false);
@@ -105,6 +107,10 @@ const CreateSSIAgent = () => {
 
   const setTouchedBootUrlInput = () => {
     setBootUrlInputTouched(true);
+  };
+
+  const setTouchedPasscodeInput = () => {
+    setPasscodeInputTouched(true);
   };
 
   const validBootUrl = useMemo(() => {
@@ -223,13 +229,14 @@ const CreateSSIAgent = () => {
   const handleCreateSSI = async () => {
     setLoading(true);
     try {
-      if (!ssiAgent.bootUrl || !ssiAgent.connectUrl) {
+      if (!ssiAgent.bootUrl || !ssiAgent.connectUrl || !ssiAgent.passcode) {
         throw new Error(SSI_URLS_EMPTY);
       }
 
       await Agent.agent.bootAndConnect({
         bootUrl: ssiAgent.bootUrl,
         url: ssiAgent.connectUrl,
+        passcode: ssiAgent.passcode,
       });
       await Agent.agent.loadDatabase(dispatch);
       const { nextPath, updateRedux } = getNextRoute(RoutePath.SSI_AGENT, {
@@ -292,6 +299,11 @@ const CreateSSIAgent = () => {
   const handleChangeBootUrl = (bootUrl: string) => {
     setIsInvalidBootUrl(false);
     dispatch(setBootUrl(bootUrl));
+  };
+
+  const handleChangePasscode = (value: string) => {
+    sessionStorage.setItem("connectPasscode", value); // Store in session storage
+    dispatch(setPasscode(value));
   };
 
   const handleOpenUrl = () => {
@@ -439,6 +451,23 @@ const CreateSSIAgent = () => {
             <InputError
               showError={showConnectionUrlError}
               errorMessage={`${i18n.t(connectionUrlError)}`}
+            />
+            <CustomInput
+              className="passcode-input"
+              dataTestId="passcode-input"
+              title={`${i18n.t("ssiagent.input.passcode.label")}`}
+              placeholder={`${i18n.t("ssiagent.input.passcode.placeholder")}`}
+              actionIcon={scanOutline}
+              action={scanConnectUrl}
+              onChangeInput={handleChangePasscode}
+              onChangeFocus={(result) => {
+                setTouchedPasscodeInput();
+                if (!result && ssiAgent.passcode) {
+                  dispatch(setPasscode(ssiAgent.passcode));
+                }
+              }}
+              value={ssiAgent.passcode || ""}
+              error={showConnectionUrlError}
             />
           </div>
           <PageFooter

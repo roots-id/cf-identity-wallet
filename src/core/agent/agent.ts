@@ -252,11 +252,17 @@ class Agent {
     if (!Agent.isOnline) {
       await signifyReady();
       //const bran = await this.getBran();
-      this.signifyClient = new SignifyClient(
-        keriaConnectUrl,
-        "nf98hUHUy8Vt5tvdyaYV8",
-        Tier.low
+      const keriaPasscode = await Agent.agent.basicStorage.findById(
+        "KERIA_PASSCODE"
       );
+      if (keriaPasscode) {
+        const passcodeObj = keriaPasscode.content as { passcode: string };
+        this.signifyClient = new SignifyClient(
+          keriaConnectUrl,
+          passcodeObj.passcode,
+          Tier.low
+        );
+      }
       this.agentServicesProps.signifyClient = this.signifyClient;
       await this.connectSignifyClient();
     }
@@ -268,7 +274,7 @@ class Agent {
       //const bran = await this.getBran();
       this.signifyClient = new SignifyClient(
         agentUrls.url,
-        "nf98hUHUy8Vt5tvdyaYV8",
+        agentUrls.passcode,
         Tier.low
       );
       this.agentServicesProps.signifyClient = this.signifyClient;
@@ -340,6 +346,7 @@ class Agent {
     await this.saveAgentUrls({
       url: connectUrl,
       bootUrl: "",
+      passcode: "nf98hUHUy8Vt5tvdyaYV8",
     });
 
     await this.syncWithKeria();
@@ -451,6 +458,12 @@ class Agent {
       id: MiscRecordId.KERIA_BOOT_URL,
       content: {
         url: agentUrls.bootUrl,
+      },
+    });
+    await this.basicStorageService.save({
+      id: "KERIA_PASSCODE",
+      content: {
+        passcode: agentUrls.passcode,
       },
     });
   }

@@ -286,6 +286,13 @@ const AppWrapper = (props: { children: ReactNode }) => {
       await new Promise((resolve) => setTimeout(resolve, 25));
 
       try {
+        //           const keriaPasscode = await Agent.agent.basicStorage.findById(
+        //                   "KERIA_PASSCODE"
+        //                 );
+        //           if (keriaPasscode) {
+        //                    const passcodeObj = keriaPasscode.content as { passcode: string };
+        //                     await Agent.agent.start(authentication.ssiAgentUrl, passcodeObj.passcode);
+        //                   }
         await Agent.agent.start(authentication.ssiAgentUrl);
         await recoverAndLoadDb();
       } catch (e) {
@@ -587,8 +594,8 @@ const AppWrapper = (props: { children: ReactNode }) => {
 
     // Begin background polling of KERIA or local DB items
     // If we are still onboarding or in offline mode, won't call KERIA until online
-//     Agent.agent.keriaNotifications.pollNotifications();
-//     Agent.agent.keriaNotifications.pollLongOperations();
+    //     Agent.agent.keriaNotifications.pollNotifications();
+    //     Agent.agent.keriaNotifications.pollLongOperations();
 
     dispatch(
       setInitializationPhase(
@@ -603,12 +610,12 @@ const AppWrapper = (props: { children: ReactNode }) => {
     // Show spinner in case recovery takes time
     dispatch(setInitializationPhase(InitializationPhase.PHASE_ONE));
     await Agent.agent.syncWithKeria();
-//     const recoveryStatus = await Agent.agent.basicStorage.findById(
-//       MiscRecordId.CLOUD_RECOVERY_STATUS
-//     );
-//     if (recoveryStatus?.content?.syncing) {
-//       await Agent.agent.syncWithKeria();
-//     }
+    //     const recoveryStatus = await Agent.agent.basicStorage.findById(
+    //       MiscRecordId.CLOUD_RECOVERY_STATUS
+    //     );
+    //     if (recoveryStatus?.content?.syncing) {
+    //       await Agent.agent.syncWithKeria();
+    //     }
 
     await loadDb();
   };
